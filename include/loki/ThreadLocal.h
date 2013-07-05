@@ -1,13 +1,25 @@
 ////////////////////////////////////////////////////////////////////////////////
 // The Loki Library
 // Copyright (c) 2009 by Rich Sposato
-// Permission to use, copy, modify, distribute and sell this software for any
-//     purpose is hereby granted without fee, provided that the above copyright
-//     notice appear in all copies and that both that copyright notice and this
-//     permission notice appear in supporting documentation.
-// The author makes no representations about the
-//     suitability of this software for any purpose. It is provided "as is"
-//     without express or implied warranty.
+// Code covered by the MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef LOKI_THREAD_LOCAL_H_INCLUDED
@@ -20,19 +32,31 @@
 
 // First assume the compiler does allow thread-local storage by #defining the
 // macro which allows compiler to see the code inside this file.
-// Then #undef the macro for compilers which are known for not supporting
-// thread-local storage.
+// Then #undef the macro for compilers which do not support thread-local
+// storage or do not implement it correctly.
 #define LOKI_THINKS_COMPILER_ALLOWS_THREAD_LOCAL_STORAGE 1
 
-// The __APPLE__ macro does not refer to a compiler, but to the Apple OSX operating system.
-#if defined( __APPLE__ )
-    #warning "GCC for Apple does not allow thread_local storage, so you can not use some parts of Loki."
-    #undef COMPILER_ALLOWS_THREAD_LOCAL_STORAGE
-#endif
+#if defined( __GNUC__ )
+    // The __APPLE__ macro does not refer to a compiler, but to the Apple OSX operating system.
+    #if defined( __APPLE__ )
+        #warning "GCC for Apple does not allow thread_local storage, so you can not use some parts of Loki."
+        #undef LOKI_THINKS_COMPILER_ALLOWS_THREAD_LOCAL_STORAGE
 
-#if ( defined( __CYGWIN__ ) && ( __GNUC__ <= 3 ) )
-    #warning "Older versions of GCC for Cygwin do not allow thread_local storage, so you can not use some parts of Loki."
-    #undef COMPILER_ALLOWS_THREAD_LOCAL_STORAGE
+    #elif defined( __CYGWIN__ )
+        #if ( __GNUC__ <= 3 )
+            #warning "Older versions of GCC for Cygwin do not allow thread_local storage, so you can not use some parts of Loki."
+            #undef LOKI_THINKS_COMPILER_ALLOWS_THREAD_LOCAL_STORAGE
+        #endif
+
+    #elif ( __GNUC__ == 4 ) // GNU versions other than Cygwin.
+        #if ( __GNUC_MINOR__ < 4 )
+            #warning "GCC versions before 4.4 implement thread_local storage incorrectly, so you can not use some parts of Loki."
+            #undef LOKI_THINKS_COMPILER_ALLOWS_THREAD_LOCAL_STORAGE
+        #elif ( __GNUC_MINOR__ == 4 )
+            #warning "GCC version 4.4 implements thread_local storage incorrectly for some platforms but not others."
+        #endif
+
+    #endif
 #endif
 
 #if defined( LOKI_THINKS_COMPILER_ALLOWS_THREAD_LOCAL_STORAGE ) && !defined( LOKI_THREAD_LOCAL )

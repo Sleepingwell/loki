@@ -4,18 +4,30 @@
 // This code accompanies the book:
 // Alexandrescu, Andrei. "Modern C++ Design: Generic Programming and Design
 //     Patterns Applied". Copyright (c) 2001. Addison-Wesley.
-// Permission to use, copy, modify, distribute and sell this software for any
-//     purpose is hereby granted without fee, provided that the above copyright
-//     notice appear in all copies and that both that copyright notice and this
-//     permission notice appear in supporting documentation.
-// The author or Addison-Wesley Longman make no representations about the
-//     suitability of this software for any purpose. It is provided "as is"
-//     without express or implied warranty.
+// Code covered by the MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef LOKI_SMARTPTR_INC_
 #define LOKI_SMARTPTR_INC_
 
-// $Id: SmartPtr.h 1052 2009-11-10 19:22:16Z rich_sposato $
+// $Id: SmartPtr.h 1115 2011-09-23 00:46:21Z rich_sposato $
 
 
 ///  \defgroup  SmartPointerGroup Smart pointers
@@ -29,12 +41,12 @@
 ///  \defgroup  SmartPointerCheckingGroup Checking policies
 ///  \ingroup   SmartPointerGroup
 
-#include "LokiExport.h"
-#include "SmallObj.h"
-#include "TypeManip.h"
-#include "static_check.h"
-#include "RefToValue.h"
-#include "ConstPolicy.h"
+#include <loki/LokiExport.h>
+#include <loki/SmallObj.h>
+#include <loki/TypeManip.h>
+#include <loki/static_check.h>
+#include <loki/RefToValue.h>
+#include <loki/ConstPolicy.h>
 
 #include <functional>
 #include <stdexcept>
@@ -52,6 +64,11 @@
 #if defined(_MSC_VER) || defined(__GNUC__)
 // GCC>=4.1 must use -ffriend-injection due to a bug in GCC
 #define LOKI_ENABLE_FRIEND_TEMPLATE_TEMPLATE_PARAMETER_WORKAROUND
+#endif
+
+#if defined( _MSC_VER )
+    #pragma warning( push )
+    #pragma warning( disable: 4355 )
 #endif
 
 
@@ -350,17 +367,63 @@ namespace Loki
     inline typename LockedStorage<T>::StoredType& GetImplRef(LockedStorage<T>& sp)
     { return sp.pointee_; }
 
+    namespace Private
+    {
+
+        ////////////////////////////////////////////////////////////////////////////////
+        ///  \class DeleteArrayBase
+        ///
+        ///  \ingroup  StrongPointerDeleteGroup
+        ///  Base class used only by the DeleteArray policy class.  This stores the
+        ///   number of elements in an array of shared objects.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        class DeleteArrayBase
+        {
+        public:
+
+            inline size_t GetArrayCount( void ) const { return m_itemCount; }
+
+        protected:
+
+            DeleteArrayBase( void ) : m_itemCount( 0 ) {}
+
+            explicit DeleteArrayBase( size_t itemCount ) : m_itemCount( itemCount ) {}
+
+            DeleteArrayBase( const DeleteArrayBase & that ) : m_itemCount( that.m_itemCount ) {}
+
+            void Swap( DeleteArrayBase & rhs );
+
+            void OnInit( const void * p ) const;
+
+            void OnCheckRange( size_t index ) const;
+
+        private:
+
+            size_t m_itemCount;
+
+        };
+
+    }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ///  \class ArrayStorage
 ///
 ///  \ingroup  SmartPointerStorageGroup
 ///  Implementation of the ArrayStorage used by SmartPtr
+///  This assumes the pointer points to the zeroth element in an array, and uses
+///  the array-delete operator to deconstruct and deallocate the array. DeepCopy
+///  is not compatible with ArrayStorage DeepCopy::Clone will only copy the first
+///  element in the array and won't know the size of the array. Even if it did
+///  know the size, it would need to use array new to safely work the array
+///  delete operator in ArrayStorage, but array new will not copy the elements
+///  in the source array since it calls the default constructor for each element.
 ////////////////////////////////////////////////////////////////////////////////
 
 
     template <class T>
-    class ArrayStorage
+    class ArrayStorage : public ::Loki::Private::DeleteArrayBase
     {
     public:
 
@@ -371,26 +434,30 @@ namespace Loki
 
     protected:
 
-        ArrayStorage() : pointee_(Default())
+        ArrayStorage() : DeleteArrayBase(), pointee_(Default())
         {}
 
         // The storage policy doesn't initialize the stored pointer
         //     which will be initialized by the OwnershipPolicy's Clone fn
-        ArrayStorage(const ArrayStorage&) : pointee_(0)
+        ArrayStorage( const ArrayStorage & that ) : DeleteArrayBase( that ), pointee_( 0 )
         {}
 
         template <class U>
-        ArrayStorage(const ArrayStorage<U>&) : pointee_(0)
+        ArrayStorage( const ArrayStorage< U >& that ) : DeleteArrayBase( that ), pointee_( 0 )
         {}
 
-        explicit ArrayStorage(const StoredType& p) : pointee_(p) {}
+        ArrayStorage( const StoredType & p, size_t count ) : DeleteArrayBase( count ),
+            pointee_( p ) {}
 
         PointerType operator->() const { return pointee_; }
 
         ReferenceType operator*() const { return *pointee_; }
 
-        void Swap(ArrayStorage& rhs)
-        { std::swap(pointee_, rhs.pointee_); }
+        void Swap( ArrayStorage & rhs )
+        {
+            DeleteArrayBase::Swap( rhs );
+            ::std::swap( pointee_, rhs.pointee_ );
+        }
 
         // Accessors
         template <class F>
@@ -615,7 +682,12 @@ namespace Loki
 ///  \ingroup  SmartPointerOwnershipGroup
 ///  Implementation of the OwnershipPolicy used by SmartPtr
 ///  Implements deep copy semantics, assumes existence of a Clone() member
-///  function of the pointee type
+///  function of the pointee type. DeepCopy is not compatible with ArrayStorage
+///  DeepCopy::Clone will only copy the first element in the array and won't
+///  know the size of the array. Even if it did know the size, it would need to
+///  use array new to safely work the array delete operator in ArrayStorage, but
+///  array new will not copy the elements in the source array since it calls the
+///  default constructor for each array element.
 ////////////////////////////////////////////////////////////////////////////////
 
     template <class P>
@@ -654,8 +726,9 @@ namespace Loki
         class LOKI_EXPORT RefLinkedBase
         {
         protected:
-            RefLinkedBase()
-            { prev_ = next_ = this; }
+            RefLinkedBase( void ) :
+                prev_( this ), next_( this )
+            {}
 
             RefLinkedBase(const RefLinkedBase& rhs);
 
@@ -721,6 +794,14 @@ namespace Loki
         template <class P1>
         DestructiveCopy(const DestructiveCopy<P1>&)
         {}
+
+        template <class P1>
+        static P Clone( const P1 & val )
+        {
+            P result(val);
+            const_cast< P1 & >( val ) = P1();
+            return result;
+        }
 
         template <class P1>
         static P Clone(P1& val)
@@ -830,6 +911,8 @@ namespace Loki
         NoCheck()
         {}
 
+        NoCheck( const NoCheck & ) {}
+
         template <class P1>
         NoCheck(const NoCheck<P1>&)
         {}
@@ -863,6 +946,8 @@ namespace Loki
 
         AssertCheck()
         {}
+
+        AssertCheck( const AssertCheck & ) {}
 
         template <class P1>
         AssertCheck(const AssertCheck<P1>&)
@@ -901,6 +986,8 @@ namespace Loki
 
         AssertCheckStrict()
         {}
+
+        AssertCheckStrict( const AssertCheckStrict & ) {}
 
         template <class U>
         AssertCheckStrict(const AssertCheckStrict<U>&)
@@ -958,6 +1045,8 @@ namespace Loki
         RejectNullStatic()
         {}
 
+        RejectNullStatic( const RejectNullStatic & ) {}
+
         template <class P1>
         RejectNullStatic(const RejectNullStatic<P1>&)
         {}
@@ -977,7 +1066,7 @@ namespace Loki
         static void OnDefault(const P&)
         {
             // Make it depended on template parameter
-            static const bool DependedFalse = sizeof(P*) == 0;
+            static const bool DependedFalse = ( sizeof(P*) == 0 );
 
             LOKI_STATIC_CHECK(DependedFalse, ERROR_This_Policy_Does_Not_Allow_Default_Initialization);
         }
@@ -1007,6 +1096,8 @@ namespace Loki
 
         RejectNull()
         {}
+
+        RejectNull( const RejectNull & ) {}
 
         template <class P1>
         RejectNull(const RejectNull<P1>&)
@@ -1043,6 +1134,8 @@ namespace Loki
 
         RejectNullStrict()
         {}
+
+        RejectNullStrict( const RejectNullStrict & ) {}
 
         template <class P1>
         RejectNullStrict(const RejectNullStrict<P1>&)
@@ -1190,6 +1283,7 @@ namespace Loki
             (void)helper; // do void cast to remove compiler warning.
             // Dynamic casting from T1 to T and saving result in `this''s pointer
             PointerType p = dynamic_cast< PointerType >( GetImplRef( rhs ) );
+            KP::OnDereference( p );
             GetImplRef( *this ) = OP::Clone( p );
         }
 
@@ -1208,6 +1302,7 @@ namespace Loki
             (void)helper; // do void cast to remove compiler warning.
             // Dynamic casting from T1 to T and saving result in `this''s pointer
             PointerType p = dynamic_cast< PointerType >( GetImplRef( rhs ) );
+            KP::OnDereference( p );
             GetImplRef( *this ) = OP::Clone( p );
         }
 
@@ -1229,8 +1324,19 @@ namespace Loki
             KP::OnInit(GetImpl(*this));
         }
 
+        /** This constructor was designed to only work with the ArrayStorage policy. Using it with
+         any other Delete policies will cause compiler errors. Call it with this syntax:
+         "ThingyPtr sp2( new Thingy[ 4 ], 4 );" so SmartPtr can do range checking on the number of elements.
+         */
+        SmartPtr( ImplicitArg p, size_t itemCount ) : SP( p, itemCount )
+        {
+            KP::OnInit( GetImpl( *this ) );
+            SP::OnInit( GetImpl( *this ) );
+        }
+
         SmartPtr(CopyArg& rhs) : SP(rhs), OP(rhs), KP(rhs), CP(rhs)
         {
+            KP::OnDereference( GetImpl( rhs ) );
             GetImplRef(*this) = OP::Clone(GetImplRef(rhs));
         }
 
@@ -1243,9 +1349,10 @@ namespace Loki
             template <class> class SP1,
             template <class> class CNP1
         >
-        SmartPtr(const SmartPtr<T1, OP1, CP1, KP1, SP1, CNP1 >& rhs)
+        SmartPtr( const SmartPtr< T1, OP1, CP1, KP1, SP1, CNP1 >& rhs )
         : SP(rhs), OP(rhs), KP(rhs), CP(rhs)
         {
+            KP::OnDereference( GetImpl( rhs ) );
             GetImplRef(*this) = OP::Clone(GetImplRef(rhs));
         }
 
@@ -1258,15 +1365,20 @@ namespace Loki
             template <class> class SP1,
             template <class> class CNP1
         >
-        SmartPtr(SmartPtr<T1, OP1, CP1, KP1, SP1, CNP1 >& rhs)
+        SmartPtr( SmartPtr< T1, OP1, CP1, KP1, SP1, CNP1 >& rhs )
         : SP(rhs), OP(rhs), KP(rhs), CP(rhs)
         {
+            KP::OnDereference( GetImpl( rhs ) );
             GetImplRef(*this) = OP::Clone(GetImplRef(rhs));
         }
 
         SmartPtr(RefToValue<SmartPtr> rhs)
         : SP(rhs), OP(rhs), KP(rhs), CP(rhs)
-        {}
+        {
+            SmartPtr & ref = rhs;
+            KP::OnDereference( GetImpl( ref ) );
+            GetImplRef( *this ) = OP::Clone( GetImplRef( ref ) );
+        }
 
         operator RefToValue<SmartPtr>()
         { return RefToValue<SmartPtr>(*this); }
@@ -1307,6 +1419,21 @@ namespace Loki
         {
             SmartPtr temp(rhs);
             temp.Swap(*this);
+            return *this;
+        }
+
+        /** This function is equivalent to an assignment operator for SmartPtr's that use the
+         DeleteArray policy where the programmer needs to write the equivalent of "sp = new P;".
+         With DeleteArray, the programmer should write "sp.Assign( new [5] Thingy, 5 );" so the
+         SmartPtr knows how many elements are in the array.
+         */
+        SmartPtr & Assign( T * p, size_t itemCount )
+        {
+            if ( GetImpl( *this ) != p )
+            {
+                SmartPtr temp( p, itemCount );
+                Swap( temp );
+            }
             return *this;
         }
 
@@ -1440,6 +1567,30 @@ namespace Loki
         {
             KP::OnDereference(GetImplRef(*this));
             return SP::operator*();
+        }
+
+        /** operator[] returns a reference to an modifiable object. If the index is greater than or
+         equal to the number of elements, the function will throw a std::out_of_range exception.
+         This only works with DeleteArray policy. Any other policy will cause a compiler error.
+         */
+        ReferenceType operator [] ( size_t index )
+        {
+            PointerType p = SP::operator->();
+            KP::OnDereference( p );
+            SP::OnCheckRange( index );
+            return p[ index ];
+        }
+
+        /** operator[] returns a reference to a const object. If the index is greater than or
+         equal to the number of elements, the function will throw a std::out_of_range exception.
+         This only works with DeleteArray policy. Any other policy will cause a compiler error.
+         */
+        ConstReferenceType operator [] ( size_t index ) const
+        {
+            ConstPointerType p = SP::operator->();
+            KP::OnDereference( p );
+            SP::OnCheckRange( index );
+            return p[ index ];
         }
 
         bool operator!() const // Enables "if (!sp) ..."
@@ -1869,5 +2020,10 @@ namespace std
     };
 }
 
-#endif // end file guardian
+// ----------------------------------------------------------------------------
 
+#if defined( _MSC_VER )
+    #pragma warning( pop )
+#endif
+
+#endif // end file guardian

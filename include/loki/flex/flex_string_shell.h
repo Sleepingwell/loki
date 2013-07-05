@@ -13,7 +13,7 @@
 #ifndef FLEX_STRING_SHELL_INC_
 #define FLEX_STRING_SHELL_INC_
 
-// $Id: flex_string_shell.h 1011 2009-03-17 18:21:12Z jfbastien $
+// $Id: flex_string_shell.h 1111 2011-09-20 23:19:14Z rich_sposato $
 
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,26 +1,38 @@
 ////////////////////////////////////////////////////////////////////////////////
 // The Loki Library
 // Copyright (c) 2006 Peter Kümmel
-// Permission to use, copy, modify, distribute and sell this software for any 
-//     purpose is hereby granted without fee, provided that the above copyright 
-//     notice appear in all copies and that both that copyright notice and this 
-//     permission notice appear in supporting documentation.
-// The author makes no representations about the 
-//     suitability of this software for any purpose. It is provided "as is" 
-//     without express or implied warranty.
+// Code covered by the MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef LOKI_REGISTER_INC_
 #define LOKI_REGISTER_INC_
 
-// $Id: Register.h 1060 2009-11-21 10:44:08Z syntheticpp $
+// $Id: Register.h 1115 2011-09-23 00:46:21Z rich_sposato $
 
 
-#include "TypeManip.h"
-#include "HierarchyGenerators.h"
-#include "ForEachType.h"
+#include <loki/TypeManip.h>
+#include <loki/HierarchyGenerators.h>
+#include <loki/ForEachType.h>
 
 
-///  \defgroup RegisterGroup Register 
+///  \defgroup RegisterGroup Register
 
 namespace Loki
 {
@@ -35,14 +47,14 @@ namespace Loki
     ///  \ingroup RegisterGroup
     ///  Must be specialized be the user
     ////////////////////////////////////////////////////////////////////////////////
-    template<class T> 
+    template<class T>
     bool RegisterFunction();
 
     ////////////////////////////////////////////////////////////////////////////////
     ///  \ingroup RegisterGroup
     ///  Must be specialized be the user
     ////////////////////////////////////////////////////////////////////////////////
-    template<class T> 
+    template<class T>
     bool UnRegisterFunction();
 
     namespace Private
@@ -52,7 +64,7 @@ namespace Loki
             template< int Index, typename T >
             void operator()()
             {
-                RegisterFunction<T>(); 
+                RegisterFunction<T>();
             }
         };
 
@@ -118,8 +130,8 @@ namespace Loki
     ///  see test/Register
     ////////////////////////////////////////////////////////////////////////////////
 
-    
-#define LOKI_CONCATE(a,b,c,d) a ## b ## c ## d 
+
+#define LOKI_CONCATE(a,b,c,d) a ## b ## c ## d
 #define LOKI_CONCAT(a,b,c,d) LOKI_CONCATE(a,b,c,d)
 
 #define LOKI_CHECK_CLASS_IN_LIST( CLASS , LIST )                                \

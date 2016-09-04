@@ -60,6 +60,13 @@
 ///  \code Loki::LongevityLifetime::DieAsSmallObjectChild \endcode
 ///  Be aware of this when you use Loki::Factory, Loki::Functor, or Loki::Function.
 
+#if __cplusplus >= 201103L
+#   define MANAGED_PTR_TYPE std::unique_ptr
+#else
+#   define MANAGED_PTR_TYPE std::auto_ptr
+#endif
+
+
 
 
 namespace Loki
@@ -169,7 +176,7 @@ namespace Loki
             pTrackerArray = new TrackerArray;
 
         // automatically delete the ConcreteLifetimeTracker object when a exception is thrown
-        std::auto_ptr<LifetimeTracker>
+        MANAGED_PTR_TYPE<LifetimeTracker>
             p( new ConcreteLifetimeTracker<T, Destroyer>(pDynObject, longevity, d) );
 
         // Find correct position

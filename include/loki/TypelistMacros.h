@@ -362,4 +362,3 @@
 #endif //LOKI_DISABLE_TYPELIST_MACROS
 
 #endif // end file guardian
-

@@ -716,4 +716,3 @@ namespace Loki
 #define LOKI_TEMP_ARRAY(TYPE, NAME, SIZE) TYPE* NAME = new TYPE[SIZE]; LOKI_ON_BLOCK_EXIT(::Loki::deleteArray<TYPE>, NAME);
 
 #endif // end file guardian
-

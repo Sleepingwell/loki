@@ -175,4 +175,3 @@ private:
 #endif // end file guardian
 
 // $Log$
-

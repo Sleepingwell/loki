@@ -1175,4 +1175,3 @@ namespace Loki
 } // namespace Loki
 
 #endif // end file guardian
-

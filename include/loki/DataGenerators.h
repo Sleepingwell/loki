@@ -127,4 +127,3 @@ namespace Loki
 }//ns Loki
 
 #endif // end file guardian
-

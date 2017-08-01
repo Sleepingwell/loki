@@ -83,4 +83,3 @@ void LOKI_C_CALLING_CONVENTION_QUALIFIER Loki::Private::AtExitFn()
 }
 
 #endif
-

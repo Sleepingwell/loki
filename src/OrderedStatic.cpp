@@ -90,4 +90,3 @@ namespace Loki
     }//namespace Private
 
 } // end namespace Loki
-

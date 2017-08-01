@@ -365,4 +365,3 @@ bool RefLinkedBase::Merge( RefLinkedBase & rhs )
 } // end namespace Private
 
 } // end namespace Loki
-

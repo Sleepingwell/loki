@@ -64,15 +64,15 @@ namespace Loki
             CallIfException   = 2
         };
 
-        ScopeGuardImplBase() throw() : dismissed_(false), exceptionPolicy_( AlwaysExecute )
+        ScopeGuardImplBase()
         {}
 
-        void Dismiss() const throw()
+        void Dismiss() const
         {
             dismissed_ = true;
         }
 
-        void SetExceptionPolicy( ExceptionPolicy policy ) const throw()
+        void SetExceptionPolicy( ExceptionPolicy policy ) const
         {
             exceptionPolicy_ = policy;
         }
@@ -87,7 +87,7 @@ namespace Loki
         {}
 
         /// Copy-constructor takes over responsibility from other ScopeGuard.
-        ScopeGuardImplBase(const ScopeGuardImplBase& other) throw()
+        ScopeGuardImplBase(const ScopeGuardImplBase& other)
             : dismissed_(other.dismissed_)
              , exceptionPolicy_( other.exceptionPolicy_ )
         {
@@ -95,7 +95,7 @@ namespace Loki
         }
 
         template <typename J>
-        static void SafeExecute(J& j) throw()
+        static void SafeExecute(J& j)
         {
             if ( AlwaysExecute != j.exceptionPolicy_ )
             {
@@ -157,7 +157,7 @@ namespace Loki
             return ScopeGuardImpl0<F>(fun);
         }
 
-        ~ScopeGuardImpl0() throw()
+        ~ScopeGuardImpl0()
         {
             SafeExecute(*this);
         }
@@ -204,7 +204,7 @@ namespace Loki
             return ScopeGuardImpl1<F, P1>(fun, p1);
         }
 
-        ~ScopeGuardImpl1() throw()
+        ~ScopeGuardImpl1()
         {
             SafeExecute(*this);
         }
@@ -252,7 +252,7 @@ namespace Loki
             return ScopeGuardImpl2<F, P1, P2>(fun, p1, p2);
         }
 
-        ~ScopeGuardImpl2() throw()
+        ~ScopeGuardImpl2()
         {
             SafeExecute(*this);
         }
@@ -301,7 +301,7 @@ namespace Loki
             return ScopeGuardImpl3<F, P1, P2, P3>(fun, p1, p2, p3);
         }
 
-        ~ScopeGuardImpl3() throw()
+        ~ScopeGuardImpl3()
         {
             SafeExecute(*this);
         }
@@ -352,7 +352,7 @@ namespace Loki
             return ScopeGuardImpl4< F, P1, P2, P3, P4 >( fun, p1, p2, p3, p4 );
         }
 
-        ~ScopeGuardImpl4() throw()
+        ~ScopeGuardImpl4()
         {
             SafeExecute( *this );
         }
@@ -405,7 +405,7 @@ namespace Loki
             return ScopeGuardImpl5< F, P1, P2, P3, P4, P5 >( fun, p1, p2, p3, p4, p5 );
         }
 
-        ~ScopeGuardImpl5() throw()
+        ~ScopeGuardImpl5()
         {
             SafeExecute( *this );
         }
@@ -459,7 +459,7 @@ namespace Loki
             return ObjScopeGuardImpl0<Obj, MemFun>(obj, memFun);
         }
 
-        ~ObjScopeGuardImpl0() throw()
+        ~ObjScopeGuardImpl0()
         {
             SafeExecute(*this);
         }
@@ -521,7 +521,7 @@ namespace Loki
             return ObjScopeGuardImpl1<Obj, MemFun, P1>(obj, memFun, p1);
         }
 
-        ~ObjScopeGuardImpl1() throw()
+        ~ObjScopeGuardImpl1()
         {
             SafeExecute(*this);
         }
@@ -584,7 +584,7 @@ namespace Loki
             return ObjScopeGuardImpl2<Obj, MemFun, P1, P2>(obj, memFun, p1, p2);
         }
 
-        ~ObjScopeGuardImpl2() throw()
+        ~ObjScopeGuardImpl2()
         {
             SafeExecute(*this);
         }
@@ -649,7 +649,7 @@ namespace Loki
             return ObjScopeGuardImpl3< Obj, MemFun, P1, P2, P3 >( obj, memFun, p1, p2, p3 );
         }
 
-        ~ObjScopeGuardImpl3() throw()
+        ~ObjScopeGuardImpl3()
         {
             SafeExecute( *this );
         }

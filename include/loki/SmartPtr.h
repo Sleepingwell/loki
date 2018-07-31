@@ -1025,7 +1025,7 @@ namespace Loki
     {
         NullPointerException() : std::runtime_error(std::string(""))
         { }
-        const char* what() const throw()
+        const char* what() const noexcept
         { return "Null Pointer Exception"; }
     };
 

@@ -61,17 +61,17 @@ public:
     typedef Type value_type;
 
     /// Default constructor does nothing.
-    inline LokiAllocator( void ) throw() { }
+    inline LokiAllocator( void ) { }
 
     /// Copy constructor does nothing.
-    inline LokiAllocator( const LokiAllocator & ) throw() { }
+    inline LokiAllocator( const LokiAllocator & ) { }
 
     /// Type converting allocator constructor does nothing.
     template < typename Type1 >
-    inline LokiAllocator( const LokiAllocator< Type1 > & ) throw() { }
+    inline LokiAllocator( const LokiAllocator< Type1 > & ) { }
 
     /// Destructor does nothing.
-    inline ~LokiAllocator() throw() { }
+    inline ~LokiAllocator() { }
 
     /// Convert an allocator<Type> to an allocator <Type1>.
     template < typename Type1 >
@@ -108,7 +108,7 @@ public:
     }
 
     /// Calculate max # of elements allocator can handle.
-    size_type max_size( void ) const throw()
+    size_type max_size( void ) const
     {
         // A good optimizer will see these calculations always produce the same
         // value and optimize this function away completely.

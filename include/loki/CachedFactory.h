@@ -121,7 +121,7 @@ namespace Loki
      protected:
             struct Exception : public std::exception
             {
-                const char* what() const throw() { return "NeverFetch Policy : No Fetching allowed"; }
+                const char* what() const noexcept { return "NeverFetch Policy : No Fetching allowed"; }
             };
 
             bool canCreate()
@@ -218,7 +218,7 @@ namespace Loki
 
             struct Exception : public std::exception
             {
-                const char* what() const throw() { return "RateLimitedCreation Policy : Exceeded the authorized creation rate"; }
+                const char* what() const noexcept { return "RateLimitedCreation Policy : Exceeded the authorized creation rate"; }
             };
 
             bool canCreate()
@@ -306,7 +306,7 @@ namespace Loki
     class EvictionException : public std::exception
     {
     public:
-        const char* what() const throw() { return "Eviction Policy : trying to make room but no objects are available"; }
+        const char* what() const noexcept { return "Eviction Policy : trying to make room but no objects are available"; }
     };
 
     // The following class is intented to provide helpers to sort
@@ -642,7 +642,7 @@ namespace Loki
     class CacheException : public std::exception
     {
     public:
-        const char* what() const throw() { return "Internal Cache Error"; }
+        const char* what() const noexcept { return "Internal Cache Error"; }
     };
 
 	/**

@@ -471,7 +471,7 @@ namespace Loki
         /// @note MSVC complains about non-empty exception specification lists.
         static void * operator new ( std::size_t size )
 #else
-        static void * operator new ( std::size_t size ) throw ( std::bad_alloc )
+        static void * operator new ( std::size_t size )
 #endif
         {
             typename MyThreadingModel::Lock lock;
@@ -480,7 +480,7 @@ namespace Loki
         }
 
         /// Non-throwing single-object new returns NULL if allocation fails.
-        static void * operator new ( std::size_t size, const std::nothrow_t & ) throw ()
+        static void * operator new ( std::size_t size, const std::nothrow_t & )
         {
             typename MyThreadingModel::Lock lock;
             (void)lock; // get rid of warning
@@ -494,7 +494,7 @@ namespace Loki
         }
 
         /// Single-object delete.
-        static void operator delete ( void * p, std::size_t size ) throw ()
+        static void operator delete ( void * p, std::size_t size )
         {
             typename MyThreadingModel::Lock lock;
             (void)lock; // get rid of warning
@@ -504,7 +504,7 @@ namespace Loki
         /** Non-throwing single-object delete is only called when nothrow
          new operator is used, and the constructor throws an exception.
          */
-        static void operator delete ( void * p, const std::nothrow_t & ) throw()
+        static void operator delete ( void * p, const std::nothrow_t & )
         {
             typename MyThreadingModel::Lock lock;
             (void)lock; // get rid of warning
@@ -525,7 +525,7 @@ namespace Loki
         static void * operator new [] ( std::size_t size )
 #else
         static void * operator new [] ( std::size_t size )
-            throw ( std::bad_alloc )
+           
 #endif
         {
             typename MyThreadingModel::Lock lock;
@@ -535,7 +535,7 @@ namespace Loki
 
         /// Non-throwing array-object new returns NULL if allocation fails.
         static void * operator new [] ( std::size_t size,
-            const std::nothrow_t & ) throw ()
+            const std::nothrow_t & )
         {
             typename MyThreadingModel::Lock lock;
             (void)lock; // get rid of warning
@@ -549,7 +549,7 @@ namespace Loki
         }
 
         /// Array-object delete.
-        static void operator delete [] ( void * p, std::size_t size ) throw ()
+        static void operator delete [] ( void * p, std::size_t size )
         {
             typename MyThreadingModel::Lock lock;
             (void)lock; // get rid of warning
@@ -560,7 +560,7 @@ namespace Loki
          new operator is used, and the constructor throws an exception.
          */
         static void operator delete [] ( void * p,
-            const std::nothrow_t & ) throw()
+            const std::nothrow_t & )
         {
             typename MyThreadingModel::Lock lock;
             (void)lock; // get rid of warning

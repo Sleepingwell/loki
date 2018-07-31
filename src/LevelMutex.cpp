@@ -1149,7 +1149,7 @@ MutexException::MutexException( const char * message,
 
 // ----------------------------------------------------------------------------
 
-MutexException::MutexException( const MutexException & that ) throw () :
+MutexException::MutexException( const MutexException & that ) :
     ::std::exception( that ),
     m_message( that.m_message ),
     m_level( that.m_level ),
@@ -1159,7 +1159,7 @@ MutexException::MutexException( const MutexException & that ) throw () :
 
 // ----------------------------------------------------------------------------
 
-MutexException & MutexException::operator = ( const MutexException & that ) throw ()
+MutexException & MutexException::operator = ( const MutexException & that )
 {
     m_message = that.m_message;
     m_level = that.m_level;
@@ -1169,13 +1169,13 @@ MutexException & MutexException::operator = ( const MutexException & that ) thro
 
 // ----------------------------------------------------------------------------
 
-MutexException::~MutexException( void ) throw ()
+MutexException::~MutexException( void )
 {
 }
 
 // ----------------------------------------------------------------------------
 
-const char * MutexException::what( void ) const throw ()
+const char * MutexException::what( void ) const
 {
     return m_message;
 }

@@ -1053,16 +1053,16 @@ public:
     MutexException( const char * message, unsigned int level, MutexErrors::Type reason );
 
     /// Copy constructor performs a member-by-member copy of an exception.
-    MutexException( const MutexException & that ) throw ();
+    MutexException( const MutexException & that );
 
     /// Copy-assignment operator performs a member-by-member copy of an exception.
-    MutexException & operator = ( const MutexException & that ) throw ();
+    MutexException & operator = ( const MutexException & that );
 
     /// Destroys the exception.
-    virtual ~MutexException( void ) throw();
+    virtual ~MutexException( void );
 
     /// Returns a simple message about which operation failed.
-    virtual const char * what( void ) const throw();
+    virtual const char * what( void ) const;
 
     /// Returns level of mutex(es) used when problem occurred.
     unsigned int GetLevel( void ) const { return m_level; }
@@ -1073,7 +1073,7 @@ public:
 private:
 
     /// Default constructor is not implemented.
-    MutexException( void ) throw ();
+    MutexException( void );
 
     /// Simple message about operation that failed.
     const char * m_message;
